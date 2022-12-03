@@ -1,19 +1,83 @@
 import React, { useState } from "react";
 import "./Style/signin.css";
 import { FormControl } from "@chakra-ui/form-control";
-import { Input, InputGroup, InputRightElement } from "@chakra-ui/input";
+import { Input, InputRightElement } from "@chakra-ui/input";
 import { VStack } from "@chakra-ui/layout";
 import { Button } from "@chakra-ui/button";
 import Vector1 from "../Vector1";
+import {  NavLink} from "react-router-dom";
+import axios from "axios";
+import { useToast } from "@chakra-ui/react";
+import { useHistory } from "react-router-dom";
 
 function Signin() {
   const [show, setShow] = useState(false);
   const handleClick = () => setShow(!show);
+  const toast = useToast();
+  const [email, setEmail] = useState();
+  const [password, setPassword] = useState();
+  const [loading, setLoading] = useState(false);
+
+  const history = useHistory();
+
+  const submitHandler = async () => {
+    setLoading(true);
+    if (!email || !password) {
+      toast({
+        title: "Please Fill all the Feilds",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      setLoading(false);
+      return;
+    }
+
+    // console.log(email, password);
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+        },
+      };
+
+      const { data } = await axios.post(
+        "/api/user/login",
+        { email, password },
+        config
+      );
+
+      // console.log(JSON.stringify(data));
+      toast({
+        title: "Login Successful",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      localStorage.setItem("userInfo", JSON.stringify(data));
+      setLoading(false);
+      history.push("/chats");
+    } catch (error) {
+      toast({
+        title: "Error Occured!",
+        description: error.response.data.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      setLoading(false);
+    }
+  };
+
   return (
+    <>
     <div style={{ width: "100%", height: "100vh" }}>
       <h1
         style={{
-            height:'18.5%',
+          height: "18.5%",
           fontFamily: "Lexend Deca",
           fontStyle: "normal",
           fontWeight: "800",
@@ -40,10 +104,10 @@ function Signin() {
             isRequired
           >
             <Input
-              //   value={email}
-              //   type="email"
+                value={email}
+                type="email"
               placeholder="Enter Your Email Address"
-              //   onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
             />
           </FormControl>
           <FormControl
@@ -78,18 +142,24 @@ function Signin() {
               borderRadius: "10px",
               color: "#ffff",
             }}
-            // onClick={submitHandler}
-            // isLoading={loading}
+            onClick={submitHandler}
+            isLoading={loading}
           >
             Login
           </Button>
         </VStack>
-        <h5 className="signin-register">Register for a new user</h5>
+        
+        <h5 className="signin-register"><NavLink to="/signup" >Register for a new user</NavLink></h5>
+        
       </div>
       <div className="vector1">
         <Vector1 />
       </div>
     </div>
+       
+
+  
+    </>
   );
 }
 
